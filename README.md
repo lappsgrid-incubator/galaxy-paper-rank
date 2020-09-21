@@ -5,7 +5,7 @@ Project home for the paper identification project for Galaxy.
 
 ## Requirements
 
-What *exactly* is expected?  A command line program? A web service?  A bash script that can run as a `cron` job?
+What *exactly* is expected?  A command line program? A web service?  A bash script that can run as a `cron` job?  What is the target OS? Are there any preferences for implementation language(s) or frameworks?
 
 What is the desired output?  Is an email with a list of links to articles sufficient?  Should articles be downloaded for human consumption?
 
@@ -87,9 +87,24 @@ The great simplifying assumption we can make is we are only interested in the co
 
 
 
+# Implementation Notes
+
+CSV files are fine for a "database" for now.  This makes the databases easy to load into spreadsheets for manipulation.
+
+
+
 # Evaluation
 
+We will need a hold out set for our final evaluation.  The hold out set can be selected from existing articles, but the IDs should be known so that the hold out documents are not inadvertently scraped from PMC.
 
+An evaluation framework should be set up as early as possible.
+
+1. Divide training data into 10 random partitions.
+2. Use nine of the partitions for training and test with the remaining partition.
+3. Repeat 10 times using each partition as the evaluation set.
+4. Collate results.
+
+The evaluation can be automated (Travis or GitHub actions) to be performed whenever code is pushed to a specific branch.
 
 # Deliverables
 
