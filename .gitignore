@@ -1,0 +1,10 @@
+ignored/
+.idea/
+target/
+*.iml
+*.iws
+*.ipr
+resources/oa_file_list.csv
+java/
+
+.venv/
