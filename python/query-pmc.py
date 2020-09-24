@@ -17,10 +17,14 @@ class SolrService:
         self.rows = rows
         self.format = format
 
-    def query(self, q, fl):
-        if isinstance(fl, list):
-            fl = ",".join(fl)
-        url = f"http://{self.host}:{self.port}/solr/{self.core}/select?q={q}&fl={fl}&rows={self.rows}&wt={self.format}"
+    def query(self, q, fl=None):
+        if fl is None:
+            url = f"http://{self.host}:{self.port}/solr/{self.core}/select?q={q}&rows={self.rows}&wt={self.format}"
+        else:
+            if isinstance(fl, list):
+                fl = ",".join(fl)
+            url = f"http://{self.host}:{self.port}/solr/{self.core}/select?q={q}&fl={fl}&rows={self.rows}&wt={self.format}"
+
         connection = urlopen(url)
         return json.loads(connection.read())
 
@@ -49,7 +53,7 @@ def write_text_files(solr, dir):
                 print(f"Unable to process {doc['id']}")
         else:
             print(f"Writing {id}")
-            with open(f"{dir}/{id}.txt", "w") as f:
+            with open(f"{dir}/PMC{id}.txt", "w") as f:
                 f.write(doc['body'])
     print("Done")
 
