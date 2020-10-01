@@ -5,6 +5,8 @@ target/
 *.iws
 *.ipr
 resources/oa_file_list.csv
-java/
 
 .venv/
+files/
+doi/
+xml/
