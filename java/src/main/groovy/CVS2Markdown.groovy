@@ -1,10 +1,16 @@
+import groovy.cli.Option
+import groovy.cli.picocli.CliBuilder
+
 /**
  * A program that reads a CSV file and prints it out at a table in
  * GitHub flavored Markdown.
  *
- * Currently the display and sort options are hard coded.
+ *
  */
 class CVS2Markdown {
+
+    RowComparator comparator
+    Set<Integer> skipColumns
 
     void process(String path) {
         process(new File(path))
@@ -40,9 +46,6 @@ class CVS2Markdown {
             }
         }
 
-        Comparator<String[]> comparator = new RowComparator()
-        comparator.add(new CellComparator(3,).ascending().string())
-        comparator.add(new CellComparator(1).descending().numeric())
         Collections.sort(table, comparator)
         printRow(headers, widths)
         printRuler(widths)
@@ -60,7 +63,7 @@ class CVS2Markdown {
         StringWriter writer = new StringWriter()
         writer.print("|")
         widths.eachWithIndex { int w, int i ->
-            if (i != 2) {
+            if (!skipColumns.contains(i)) {
                 String fmt = " %${w}s "
                 writer.print(String.format(fmt, " ").replaceAll(" ","-"))
                 writer.print("|")
@@ -72,7 +75,7 @@ class CVS2Markdown {
         StringWriter writer = new StringWriter()
         writer.print("|")
         row.eachWithIndex { String cell, int i ->
-            if (i != 2) {
+            if (!skipColumns.contains(i)) {
                 writer.print(pad(cell, widths[i]))
                 writer.print("|")
             }
@@ -81,16 +84,58 @@ class CVS2Markdown {
     }
 
     static void main(String[] args) {
-        if (args.length == 0) {
-            // new CVS2Markdown().process("/Users/suderman/Projects/identify-galaxy/publishers.csv")
-            println "USAGE: groovy CSV2Markdown.groovy /path/to/file.csv"
+        CliBuilder cli = new CliBuilder(usage:'CVS2Markdown', stopAtNonOption: false)
+        cli.x(longOpt:'skip', valueSeparator:',', args:'+', argName:'N', optionalArg:true, 'columns to omit in the output')
+        cli.s(longOpt:'sort', optionalArg: true, type:String, args:'0..*', argName:'#[AD][NS]', 'sort options')
+        cli.usageMessage.footer '''
+The sort option expects a three part string:
+- the column number
+- either an A (ascending) or D (descending) sort
+- either an N (numberic) or S (String) sort
+
+The parts can appear in any order and only the column number is required. The ANDS can be upper or lower case.
+
+@|bold EXAMPLES|@
+$>groovy CVS2Markdown.groovy --sort 3AS --sort nd4 ...
+'''
+        def options = cli.parse(args)
+        CVS2Markdown app = new CVS2Markdown()
+        app.skipColumns = new TreeSet<>()
+        if (!options) {
+            cli.usage()
+            return
+        }
+        List<String> files = options.arguments()
+        if (files == null || files.size() == 0) {
+            println "No CSV file provided."
+            cli.usage()
             return
         }
 
-        new CVS2Markdown().process(args[0])
+        if (options.xs) {
+            options.xs.each { app.skipColumns.add(Integer.valueOf(it)) }
+        }
+        app.comparator = new CVS2Markdown.RowComparator()
+        if (options.ss) {
+            options.ss.each { String spec ->
+                CellComparator cc = SortSpecParser.parse(spec)
+                if (cc == null) {
+                    return
+                }
+                app.comparator.add(cc)
+//                String type = cc.numeric ? 'numeric' : 'string'
+//                String order = cc.ascending ? 'ascending' : 'descending'
+//                println "Sorting column ${cc.column} $order $type"
+            }
+        }
+        else {
+            app.comparator.add(new CVS2Markdown.CellComparator(0, false, false))
+        }
+
+        app.process(files[0])
     }
 
-    class CellComparator implements Comparator<String[]> {
+    static class CellComparator implements Comparator<String[]> {
         int column
         boolean ascending
         boolean numeric
@@ -124,9 +169,54 @@ class CVS2Markdown {
             }
             return 0
         }
+
+
     }
 
-    class RowComparator implements Comparator<String[]> {
+    static class SortSpecParser {
+        static CellComparator parse(String spec) {
+            boolean foundDigit = false;
+            int col = 0
+            boolean isAscending = true
+            boolean isNumeric = false
+            char[] chars = spec.toCharArray()
+            char zero = '0'.charAt(0)
+            for (int i = 0; i < chars.length; ++i) {
+                if (Character.isDigit(chars[i])) {
+                    char ch = chars[i]
+                    int val = ch - zero
+                    col = col * 10 + val
+                    foundDigit = true
+                }
+                else {
+                    switch (chars[i]) {
+                        case 'N':
+                        case 'n':
+                            isNumeric = true;
+                            break
+                        case 'S':
+                        case 's':
+                            isNumeric = false;
+                            break
+                        case 'A': case 'a':
+                            isAscending = true
+                            break
+                        case 'D': case 'd':
+                            isAscending = false
+                            break
+                        default:
+                            println "Invalid sort configuration: $spec"
+                            return null
+                    }
+                }
+            }
+            if (!foundDigit) {
+                return null;
+            }
+            return new CellComparator(col, isAscending, isNumeric)
+        }
+    }
+    static class RowComparator implements Comparator<String[]> {
 
         List<CellComparator> comparators = []
 

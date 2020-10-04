@@ -5,11 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Uses multiple threads to download DOI metadata from dx.doi.org.  The list of DOI
- * is read from a text file (one URL per line) specified on the command line, but the
- * output directory is hard coded.
- *
- * TODO
- * - Output directory should be a command line parameter.
+ * is read from a text file (one URL per line) specified on the command line.
  *
  */
 class Downloader {
@@ -52,12 +48,15 @@ class Downloader {
         return null
     }
 
-    void process(String path) {
+    void process(String inpath, String outpath) {
         ExecutorService executor = Executors.newFixedThreadPool(2)
-        File file = new File(path)
+        File file = new File(inpath)
         if (!file.exists()) {
-            println "Unable to find $path"
+            println "Unable to find $inpath"
             return
+        }
+        if (outpath.endsWith("/")) {
+            outpath = outpath.substring(0, outpath.length() - 1)
         }
         List<String> lines = file.readLines()
         lines.each { String line ->
@@ -66,7 +65,7 @@ class Downloader {
                 String content = download(line)
                 if (content != null) {
                     try {
-                        String relpath = '/Users/suderman/Projects/identify-galaxy/doi' + url.getPath() + '.xml'
+                        String relpath = outpath + url.getPath() + '.xml'
                         File xmlFile = new File(relpath)
                         File parent = xmlFile.getParentFile()
                         if (!parent.exists()) {
@@ -101,11 +100,11 @@ class Downloader {
     }
 
     static void main(String[] args) {
-        if (args.length == 0) {
-            println "USAGE: groovy Downloader.groovy /path/to/doi-file-list.txt"
+        if (args.length != 2) {
+            println "USAGE: groovy Downloader.groovy /path/to/doi-file-list.txt /output/directory/"
             return
         }
-        new Downloader().process(args[0])
+        new Downloader().process(args[0], args[1])
 //        new Downloader().process("/Users/suderman/Projects/identify-galaxy/python/doi-file-list.txt")
 //        println new Downloader().get("http://dx.doi.org/10.1371/journal.pgen.1005052")
     }

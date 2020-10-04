@@ -10,3 +10,6 @@ resources/oa_file_list.csv
 files/
 doi/
 xml/
+
+trash/
+*.log

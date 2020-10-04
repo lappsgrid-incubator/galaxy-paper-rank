@@ -8,14 +8,14 @@ import java.sql.SQLOutput
  */
 class DoiXmlParser {
 
-    static XmlParser xmlParser() {
-        XmlParser parser = new XmlParser()
-        parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
-        parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", true)
-        return parser
-    }
+//    static XmlParser xmlParser() {
+//        XmlParser parser = new XmlParser()
+//        parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
+//        parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+//        return parser
+//    }
 
-    XmlParser parser = xmlParser()
+    XmlParser parser = XML.Parser()
 
     String download(String url, String cookie=null) {
         return download(new URI(url).toURL(), cookie)
@@ -24,7 +24,7 @@ class DoiXmlParser {
     String download(URL url, String cookie=null) {
         HttpURLConnection connection = url.openConnection()
         connection.setInstanceFollowRedirects(true)
-        connection.setRequestProperty("User-Agent", "LappsgridDownloader/1.0 (http://www.lappsgrid.org mailto:suderman@ccs.vassar.edu)")
+        connection.setRequestProperty("User-Agent", "LappsgridDownloader/1.0 (http://www.lappsgrid.org mailto:suderman@cs.vassar.edu)")
         connection.setRequestMethod('GET')
         connection.setConnectTimeout(60000)
         int code = connection.responseCode
@@ -189,42 +189,6 @@ class DoiXmlParser {
     }
 }
 
-class Record {
-    boolean tdm
-    File file
-    Map<String,String> types
-
-    Record() {
-        tdm = false
-        types = [:]
-    }
-    Record(File file) {
-        this()
-        this.file = file
-    }
-
-    String type() {
-        String[] validTypes = [ 'application/xml', 'text/xml', 'text/html', 'text/plain', 'application/pdf'] as String[]
-        for (int i = 0; i < validTypes.length; ++i) {
-            String type = validTypes[i]
-            if (types[type]) {
-                return type
-            }
-        }
-        return null
-    }
-
-    URL url() {
-        return url(type())
-    }
-
-    URL url(String type) {
-        if (type == null || types[type] == null) {
-            return null
-        }
-        return new URI(types[type]).toURL()
-    }
-}
 
 /*
 f1000research.com   download XML files
