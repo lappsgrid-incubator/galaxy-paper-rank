@@ -1,15 +1,15 @@
+@GrabConfig(systemClassLoader=true)
+// NOTE: You may have to tweak this version number depending on the version of
+// Groovy you are using.
+@Grab("org.codehaus.groovy:groovy-cli-picocli:3.0.5")
 import groovy.cli.picocli.CliBuilder
 
 import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 
 /**
  *
  */
 class DoiProcessor {
-
-    String outdir
 
     boolean checkDir(File directory, String type) {
         if (!directory.exists()) {
@@ -37,7 +37,7 @@ class DoiProcessor {
         visitor.publisherIndex.sort().each { host,list ->
             File outfile = new File(outdir, "${host}.csv")
             outfile.withPrintWriter { writer ->
-                list.each { writer.println "${it.url()},${it.type()}" }
+                list.each { writer.println "${it.url()}}" }
             }
             println "Wrote ${outfile.path} ${list.size()}"
         }
