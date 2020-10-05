@@ -4,7 +4,7 @@ import org.xml.sax.SAXParseException
 
 /**
  * Factory method to consistently create XML parsers.  In particular loading
- * external DTD's should be disabled for security.
+ * external DTDs should be disabled for security reasons.
  */
 class XML {
     private XML() {}

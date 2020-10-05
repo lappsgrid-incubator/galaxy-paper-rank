@@ -7,7 +7,9 @@ import groovy.cli.picocli.CliBuilder
 import java.nio.file.Files
 
 /**
- *
+ * A command line program that walks a directory tree parsing all DOI/XML files
+ * found.  The program can print two summaries of the DOI files.
+ * 1. 
  */
 class DoiProcessor {
 
@@ -37,7 +39,7 @@ class DoiProcessor {
         visitor.publisherIndex.sort().each { host,list ->
             File outfile = new File(outdir, "${host}.csv")
             outfile.withPrintWriter { writer ->
-                list.each { writer.println "${it.url()}}" }
+                list.each { writer.println "${it.url()}" }
             }
             println "Wrote ${outfile.path} ${list.size()}"
         }

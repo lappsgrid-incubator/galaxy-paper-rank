@@ -1,6 +1,6 @@
 /**
  * The MIME types we recognize.  The ALL arrays defines the types in
- * our order of preference given a choice.
+ * our order of preference if we are given a choice.
  */
 class Types {
     static final String XML = "application/xml"

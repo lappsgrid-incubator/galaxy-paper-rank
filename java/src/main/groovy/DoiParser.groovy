@@ -1,5 +1,6 @@
 /**
- *
+ * Parses download links from a DOI/XML file.  Each parse returns a Record object
+ * which contains a mapping between the available mime-types and download URLs.
  */
 class DoiParser {
     XmlParser parser = XML.Parser()

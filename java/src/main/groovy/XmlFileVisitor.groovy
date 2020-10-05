@@ -6,7 +6,8 @@ import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 
 /**
- *
+ * FileVisitor called when walking a directory tree looking for DOI XML files. Each
+ * XML files is parsed and any download links, and their mime-types, are indexed.
  */
 class XmlFileVisitor extends SimpleFileVisitor<Path> {
 
@@ -24,9 +25,7 @@ class XmlFileVisitor extends SimpleFileVisitor<Path> {
 
     @Override
     FileVisitResult visitFile(Path file, BasicFileAttributes atts) {
-//        println "Visiting $file"
         if (glob.matches(file)) {
-//            println "Parsing $file"
             Record record = parser.process(file.toFile())
             record.types.each { type,url ->
                 List<Record> list = typeIndex[type]

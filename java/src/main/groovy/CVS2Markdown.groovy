@@ -5,7 +5,7 @@
 import groovy.cli.picocli.CliBuilder
 
 /**
- * A program that reads a CSV file and prints it out at a table in
+ * A program that reads a CSV file and prints it out as a table in
  * GitHub flavored Markdown.
  *
  *
@@ -102,8 +102,6 @@ The parts can appear in any order and only the column number is required. The AN
 $>groovy CVS2Markdown.groovy --sort 3AS --sort nd4 ...
 '''
         def options = cli.parse(args)
-        CVS2Markdown app = new CVS2Markdown()
-        app.skipColumns = new TreeSet<>()
         if (!options) {
             cli.usage()
             return
@@ -115,6 +113,8 @@ $>groovy CVS2Markdown.groovy --sort 3AS --sort nd4 ...
             return
         }
 
+        CVS2Markdown app = new CVS2Markdown()
+        app.skipColumns = new TreeSet<>()
         if (options.xs) {
             options.xs.each { app.skipColumns.add(Integer.valueOf(it)) }
         }
@@ -126,9 +126,6 @@ $>groovy CVS2Markdown.groovy --sort 3AS --sort nd4 ...
                     return
                 }
                 app.comparator.add(cc)
-//                String type = cc.numeric ? 'numeric' : 'string'
-//                String order = cc.ascending ? 'ascending' : 'descending'
-//                println "Sorting column ${cc.column} $order $type"
             }
         }
         else {
@@ -186,9 +183,7 @@ $>groovy CVS2Markdown.groovy --sort 3AS --sort nd4 ...
             char zero = '0'.charAt(0)
             for (int i = 0; i < chars.length; ++i) {
                 if (Character.isDigit(chars[i])) {
-                    char ch = chars[i]
-                    int val = ch - zero
-                    col = col * 10 + val
+                    col = col * 10 + chars[i] - zero
                     foundDigit = true
                 }
                 else {
