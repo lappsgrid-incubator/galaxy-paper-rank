@@ -9,7 +9,7 @@ import java.nio.file.Files
 /**
  * A command line program that walks a directory tree parsing all DOI/XML files
  * found.  The program can print two summaries of the DOI files.
- * 1. 
+ * 1.
  */
 class DoiProcessor {
 
@@ -45,6 +45,30 @@ class DoiProcessor {
         }
     }
 
+    void summary(File directory) {
+        if (!checkDir(directory, "Input")) {
+            return
+        }
+        XmlFileVisitor visitor = walk(directory)
+        visitor.publisherIndex.each { host, list ->
+            Map<String,Counter> counters = [:]
+            list.each { record ->
+                record.types.each { type,url ->
+                    Counter counter = counters[type]
+                    if (counter == null) {
+                        counter = new Counter()
+                        counters[type] = counter
+                    }
+                    ++counter
+                }
+            }
+            println("Publisher,Size,Type")
+            counters.each { type,counter ->
+               println("$host,${counter.count},$type")
+            }
+        }
+    }
+
     void types(File directory) {
         if (!checkDir(directory,"Input")) {
             return
@@ -59,32 +83,79 @@ class DoiProcessor {
 
     static void main(String[] args) {
         CliBuilder cli = new CliBuilder(stopAtNonOption: false)
-        cli.p(longOpt:'publishers', args:1, optionalArg:true, 'saves a file index for each publisher')
-        cli.t(longOpt:'types', args:1, optionalArg:true, 'prints files sorted by type')
-        cli.i(longOpt:'in', args:1, type:File, optionalArg: false, argName:'DIR', 'input directory of DOI files')
-        cli.o(longOpt:'out', args:1, type:File, optionalArg: true, argName:'DIR', 'output directory')
+        cli.p(longOpt:'publishers', 'saves a file index for each publisher')
+        cli.s(longOpt:'summary', 'prints a summary of types available from each publisher')
+        cli.t(longOpt:'types', 'prints files sorted by type')
+//        cli.i(longOpt:'in', args:1, type:File, optionalArg: false, argName:'DIR', 'input directory of DOI files')
+//        cli.o(longOpt:'out', args:1, type:File, optionalArg: true, argName:'DIR', 'output directory')
+        cli.h(longOpt:'help', 'display this help message')
         def options = cli.parse(args)
         if (!options) {
             println "Invalid options."
             cli.usage()
             return
         }
-        if (options.p && options.t) {
-            println "You can only specify one of -p or -t"
+        if (options.h) {
+            cli.usage()
             return
         }
+
+        int nargs = 0
+        if (options.p) ++nargs
+        if (options.t) ++nargs
+        if (options.s) ++nargs
+        if (nargs == 0) {
+            println "One of -p -s or -t must be specified."
+            cli.usage()
+            return
+        }
+        if (nargs != 1) {
+            println "Only one of -p -s or -t may be specified"
+            cli.usage()
+            return
+        }
+        List<String> argv = options.arguments()
         if (options.p) {
-            if (!options.o) {
-                println "An output directoyr must be specified with -p"
+            if (argv.size() != 2) {
+                println "Input and output directories are required"
+                cli.usage()
                 return
             }
-            new DoiProcessor().publishers(options.i, options.o)
+            File indir = new File(argv[0])
+            File outdir = new File(argv[1])
+            new DoiProcessor().publishers(indir, outdir)
         }
         else if (options.t) {
-            new DoiProcessor().types(options.i)
+            if (argv.size() != 1) {
+                println "Input directory required"
+                cli.usage()
+                return
+            }
+            new DoiProcessor().types(new File(argv[0]))
+        }
+        else if (options.s) {
+            if (argv.size() != 1) {
+                println "Input directory required"
+                cli.usage()
+                return
+            }
+            new DoiProcessor().summary(new File(argv[0]))
         }
         else {
-            println "You must specify one of -p or -t (but not both)"
+            println "You must specify one of -p -s or -t"
+        }
+    }
+
+    static class Counter {
+        int count
+
+        Counter next() {
+            ++count
+            return this
+        }
+        Counter prev() {
+            --count
+            return this
         }
     }
 }
