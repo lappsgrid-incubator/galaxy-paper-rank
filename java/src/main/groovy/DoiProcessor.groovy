@@ -54,14 +54,15 @@ class DoiProcessor {
         visitor.publisherIndex.each { host, list ->
             Map<String,Counter> counters = [:]
             list.each { record ->
-                record.types.each { type,url ->
+                String type = record.type()
+//                record.types.each { type,url ->
                     Counter counter = counters[type]
                     if (counter == null) {
                         counter = new Counter()
                         counters[type] = counter
                     }
                     ++counter
-                }
+//                }
             }
             counters.each { type,counter ->
                println("$host,${counter.count},$type")
