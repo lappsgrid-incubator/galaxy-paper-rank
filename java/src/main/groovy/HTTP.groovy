@@ -40,7 +40,8 @@ class HTTP {
         response.body = connection.inputStream.bytes
         return response
     }
-    public class Response {
+
+    class Response {
         int code
         String message
         Map<String,List<String>> headers

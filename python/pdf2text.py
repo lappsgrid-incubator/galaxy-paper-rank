@@ -16,8 +16,16 @@ def run(pdfDir, txtDir):
     if not os.path.isdir(txtDir):
         print(f"{txtDir} is not a directory")
         return
+    process(pdfDir, txtDir)
+
+def process(pdfDir, txtDir):
     for f in os.listdir(pdfDir):
-        if f.endswith(".pdf"):
+        if os.path.isdir(f):
+            newTxtDir = os.path.join(txtDir, f)
+            if not os.path.exists(newTxtDir):
+                os.makedirs(newTxtDir)
+            process(os.path.join(pdfDir,f), newTxtDir)
+        elif f.endswith(".pdf"):
             print(f"Converting {f}")
             try:
                 txt = read(os.path.join(pdfDir, f))
@@ -25,8 +33,9 @@ def run(pdfDir, txtDir):
                 with open(outpath, "w") as txt_file:
                     txt_file.write(txt)
                 print(f"Wrote {outpath}")
-            except:
-                print(f"Unable to convert {f}")
+            except Exception as e:
+                print(f"Unable to convert {f} : " + str(e))
+
 
 def read(path):
     output_string = StringIO()
