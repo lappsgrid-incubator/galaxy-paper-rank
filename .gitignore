@@ -10,6 +10,8 @@ resources/oa_file_list.csv
 files/
 doi/
 xml/
+groovy/
+groovy-old/
 
 trash/
 *.log
