@@ -50,6 +50,7 @@ class DoiProcessor {
             return
         }
         XmlFileVisitor visitor = walk(directory)
+        println("Publisher,Size,Type")
         visitor.publisherIndex.each { host, list ->
             Map<String,Counter> counters = [:]
             list.each { record ->
@@ -62,7 +63,6 @@ class DoiProcessor {
                     ++counter
                 }
             }
-            println("Publisher,Size,Type")
             counters.each { type,counter ->
                println("$host,${counter.count},$type")
             }
