@@ -26,4 +26,4 @@ https://www.sage-care.eu/wp-content/uploads/2019/07/Masterthesis_MarkusLeipold.p
 ### Certificate Problems
 
 https://www.currentscience.ac.in/Volumes/118/07/1042.pdf PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
-https://libres.uncg.edu/ir/asu/f/French_Patrick_Spring%202020_Thesis.pdf PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+https://libres.uncg.edu/ir/asu/f/French_Patrick_Spring%202020_Thesis.pdf PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested targetxq

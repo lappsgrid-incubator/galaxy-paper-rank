@@ -1,7 +1,7 @@
-@GrabConfig(systemClassLoader=true)
+//@GrabConfig(systemClassLoader=true)
 // NOTE: You may have to tweak this version number depending on the version of
 // Groovy you are using.
-@Grab("org.codehaus.groovy:groovy-cli-picocli:3.0.5")
+//@Grab("org.codehaus.groovy:groovy-cli-picocli:3.0.5")
 import groovy.cli.picocli.CliBuilder
 
 import java.nio.file.Files

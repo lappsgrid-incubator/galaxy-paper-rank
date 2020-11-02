@@ -1,7 +1,7 @@
-@GrabConfig(systemClassLoader=true)
+//@GrabConfig(systemClassLoader=true)
 // NOTE: You may have to tweak this version number depending on the version of
 // Groovy you are using.
-@Grab("org.codehaus.groovy:groovy-cli-picocli:3.0.5")
+//@Grab("org.codehaus.groovy:groovy-cli-picocli:3.0.5")
 import groovy.cli.picocli.CliBuilder
 
 /**
@@ -129,49 +129,12 @@ $>groovy CVS2Markdown.groovy --sort 3AS --sort nd4 ...
             }
         }
         else {
-            app.comparator.add(new CVS2Markdown.CellComparator(0, false, false))
+            app.comparator.add(new CellComparator(0, false, false))
         }
 
         app.process(files[0])
     }
 
-    static class CellComparator implements Comparator<String[]> {
-        int column
-        boolean ascending
-        boolean numeric
-
-        CellComparator(int column, boolean ascending = true, boolean numeric = false) {
-            this.column = column
-            this.ascending = ascending
-            this.numeric = numeric
-        }
-
-        CellComparator ascending() { ascending = true ; this }
-        CellComparator descending() { ascending = false ; this }
-        CellComparator numeric() { numeric = true ; this }
-        CellComparator string() { numeric = false ; this }
-
-        @Override
-        int compare(String[] aRow, String[] bRow) {
-            String a = aRow[column]
-            String b = bRow[column]
-            if (ascending) {
-                if (numeric) {
-                    return (a as int) - (b as int)
-                }
-                return a.compareTo(b)
-            }
-            else {
-                if (numeric) {
-                    return (b as int) - (a as int)
-                }
-                return b.compareTo(a)
-            }
-            return 0
-        }
-
-
-    }
 
     static class SortSpecParser {
         static CellComparator parse(String spec) {
@@ -236,4 +199,43 @@ $>groovy CVS2Markdown.groovy --sort 3AS --sort nd4 ...
             return result
         }
     }
+
+    static class CellComparator implements Comparator<String[]> {
+        int column
+        boolean ascending
+        boolean numeric
+
+        CellComparator(int column, boolean ascending = true, boolean numeric = false) {
+            this.column = column
+            this.ascending = ascending
+            this.numeric = numeric
+        }
+
+        CellComparator ascending() { ascending = true ; this }
+        CellComparator descending() { ascending = false ; this }
+        CellComparator numeric() { numeric = true ; this }
+        CellComparator string() { numeric = false ; this }
+
+        @Override
+        int compare(String[] aRow, String[] bRow) {
+            String a = aRow[column]
+            String b = bRow[column]
+            if (ascending) {
+                if (numeric) {
+                    return (a as int) - (b as int)
+                }
+                return a.compareTo(b)
+            }
+            else {
+                if (numeric) {
+                    return (b as int) - (a as int)
+                }
+                return b.compareTo(a)
+            }
+            return 0
+        }
+
+
+    }
 }
+

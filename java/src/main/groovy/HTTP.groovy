@@ -4,41 +4,48 @@
 class HTTP {
 
     HttpURLConnection connection
+    List<Closure> actions
+//    static HTTP get(String url) {
+//        return get(new URI(url).toURL())
+//    }
 
-    static HTTP get(String url) {
-        return get(new URI(url).toURL())
+    HTTP(String url) {
+        this(new URI(url).toURL())
     }
 
-    static HTTP get(URL url) {
-        HTTP http = new HTTP()
-        http.connection = url.openConnection()
-        http.connection.setRequestMethod("GET")
-        return http
+    HTTP(URL url) {
+        this.connection = url.openConnection()
+        this.actions = []
     }
 
     HTTP header(String name, String value) {
-        connection.setRequestProperty(name, value)
+        actions << { conn -> conn.setRequestProperty(name, value) }
         return this
     }
 
     HTTP timeout(long msec) {
-        connection.setConnectTimeout(msec)
+        actions << { conn -> conn.setConnectTimeout(msec) }
         return this
     }
 
-    Response response() {
+    void get(Closure handler) {
+        actions << { conn -> conn..setRequestMethod("GET") }
+        actions.each { act -> act(connection) }
         Response response = new Response()
-        if (connection.responseCode == 301 || connection.responseCode == 302) {
+        while (connection.responseCode == 301 || connection.responseCode == 302) {
             String location = connection.getHeaderField("Location")
-            if (location != null) {
-                return HTTP.get(location).response()
+            if (location == null) {
+                break
             }
+            connection = new URI(location).toURL().openConnection()
+            actions.each { it(connection) }
         }
+
         response.code = connection.responseCode
         response.message = connection.responseMessage
         response.headers = connection.headerFields
         response.body = connection.inputStream.bytes
-        return response
+        handler(response)
     }
 
     class Response {

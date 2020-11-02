@@ -11,8 +11,12 @@
     <groupId>org.lappsgrid.galaxy</groupId>
     <artifactId>curation</artifactId>
     <version>1.0-SNAPSHOT</version>
-
     <dependencies>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>${groovy.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-xml</artifactId>

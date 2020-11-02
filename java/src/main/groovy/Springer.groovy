@@ -1,7 +1,7 @@
-@GrabConfig(systemClassLoader=true)
+//@GrabConfig(systemClassLoader=true)
 // NOTE: You may have to tweak this version number depending on the version of
 // Groovy you are using.
-@Grab("org.codehaus.groovy:groovy-cli-picocli:3.0.5")
+//@Grab("org.codehaus.groovy:groovy-cli-picocli:3.0.5")
 import groovy.cli.picocli.CliBuilder
 import groovy.json.JsonSlurper
 
@@ -85,18 +85,21 @@ class Springer {
             }
         }
         try {
-            def response = HTTP.get(url).response()
-            if (response.code == 200) {
-                file.withOutputStream { OutputStream out ->
-                    println "Downloaded ${response.body.length} bytes from $url"
-                    out.write(response.body)
+            boolean result = false
+            new HTTP(url).get { HTTP.Response response ->
+                if (response.code == 200) {
+                    file.withOutputStream { OutputStream out ->
+                        println "Downloaded ${response.body.length} bytes from $url"
+                        out.write(response.body)
+                    }
+                    println "Wrote ${file.path}"
+                    result = true
                 }
-                println "Wrote ${file.path}"
+                else {
+                    println "ERROR ${response.code} ${response.message} $url"
+                }
             }
-            else {
-                println "ERROR ${response.code} ${response.message} $url"
-            }
-            return response.code == 200
+            return result
         }
         catch (Exception e) {
             println e
