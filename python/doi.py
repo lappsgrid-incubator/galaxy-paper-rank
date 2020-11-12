@@ -191,7 +191,7 @@ def get_all_doi(csv_path, token):
         reader = csv.reader(csv_file)
         keys = next(reader)
         for row in reader:
-            doi = row[1]
+            doi = row[2]
             # get_doi(doi, token)
             print(f"DOI {doi}")
 
