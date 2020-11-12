@@ -203,6 +203,10 @@ def get_all_doi(csv_path, token):
     with open(csv_path, "r") as csv_file:
         reader = csv.reader(csv_file)
         keys = next(reader)
+        line = next(reader)
+        while line[2] != "10.1002/9781119200055.ch9":
+            line = next(reader)
+            
         for row in reader:
             doi = row[2]
             get_doi(doi, token)
