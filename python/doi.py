@@ -77,7 +77,10 @@ def download_xml(url, publisher, token):
         'CR-Clickthrough-Client-Token': token
     }
 
-    filename = url.split("/")[-1]
+    filename = url.split("?")[0].split("/")[-1]
+    if not filename.endswith(".xml"):
+        filename = f"{filename}.xml"
+        
     path = f"{NEGATIVES}/xml/{publisher}/{filename}"
     dirname = os.path.dirname(path)
     if not os.path.exists(dirname):
