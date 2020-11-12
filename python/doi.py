@@ -198,9 +198,9 @@ def parse_doi_xml(filename):
     print(resource[0].string)
 
 if __name__ == "__main__":
-    # if len(sys.argv) == 1:
-    #     print("USAGE: python doi.py <DOI>")
-    #     sys.exit(1)
+    if len(sys.argv) == 1:
+        print("USAGE: python doi.py <DOI>")
+        sys.exit(1)
     #
     # get_doi(sys.argv[1])
     # test_gix064()
@@ -209,5 +209,5 @@ if __name__ == "__main__":
     if token is None:
         print("The CROSSREF_API_TOKEN environment variable has not been set")
     else:
-        get_doi('10.1002/rse2.54', token)
+        get_doi(sys.argv[1], token)
     # parse_zotero_csv("/Users/suderman/Downloads/Zotero_lib_20200921.csv")
