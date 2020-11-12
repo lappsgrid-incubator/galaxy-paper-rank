@@ -76,7 +76,7 @@ def download_xml(url, token):
 
     filename = url.split("/")[-1]
     path = f"xml/{filename}"
-    response = requests.get(url, headers)
+    response = requests.get(url, headers=headers)
     if response.status_code == 200:
         with open(path, "w") as xml_file:
             xml_file.write(response.text)
@@ -93,7 +93,7 @@ def download_pdf(url, token):
     }
     print(f"Token is {token}")
     print(headers)
-    response = requests.get(url, headers)
+    response = requests.get(url, headers=headers)
     if response.status_code == 200:
         with open(path, "w") as pdf_file:
             pdf_file.write(response.content)
