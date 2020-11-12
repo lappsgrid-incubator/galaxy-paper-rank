@@ -89,7 +89,13 @@ def download_xml(url, doi, publisher, token):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
-    response = requests.get(url, headers=headers)
+    try:
+        response = requests.get(url, headers=headers)
+    except:
+        print(f"Unable to download {url} : {sys.exc_info()[0]}")
+        errors.append(f"{doi},{url},500,{sys.exc_info()[0]}")
+        return
+
     if response.status_code == 200:
         with open(path, "w") as xml_file:
             xml_file.write(response.text)
@@ -111,7 +117,13 @@ def download_pdf(url, doi, publisher, token):
         'CR-Clickthrough-Client-Token': token
     }
 
-    response = requests.get(url, headers=headers)
+    try:
+        response = requests.get(url, headers=headers)
+    except:
+        print(f"Unable to download {url} : {sys.exc_info()[0]}")
+        errors.append(f"{doi},{url},500,{sys.exc_info()[0]}")
+        return
+
     if response.status_code == 200:
         print(f"Downloaded {url}")
         with open(path, "wb") as pdf_file:
