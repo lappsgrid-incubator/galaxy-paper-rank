@@ -192,7 +192,9 @@ def get_all_doi(csv_path, token):
         keys = next(reader)
         for row in reader:
             doi = row[1]
-            get_doi(doi, token)
+            # get_doi(doi, token)
+            print(f"DOI {doi}")
+
     print(f"Downloaded {len(downloads)} files.")
     print(f"Encountered {len(errors)} errors.")
     with open(f"{BASE_DIRECTORY}/negative-downloaded.csv", "w") as csv_file:
@@ -227,8 +229,8 @@ if __name__ == "__main__":
         print("The CROSSREF_API_TOKEN environment variable has not been set")
     elif sys.argv[1].endswith(".csv"):
         print("Found csv file")
-        # get_all_doi(sys.argv[1], token)
+        get_all_doi(sys.argv[1], token)
     else:
         print("Found single DOI")
-        # get_doi(sys.argv[1], token)
+        get_doi(sys.argv[1], token)
     # parse_zotero_csv("/Users/suderman/Downloads/Zotero_lib_20200921.csv")
