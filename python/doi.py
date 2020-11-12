@@ -6,6 +6,9 @@ from bs4 import BeautifulSoup
 
 test_url = "https://cdn.elifesciences.org/articles/25157/elife-25157-v2.xml"
 
+BASE_DIRECTORY = '/data/corpora/curation'
+NEGATIVES = f"{BASE_DIRECTORY}/negative"
+
 def parse_zotero_csv(path):
     dxdoi = "http://dx.doi.org"
     urls_only = list()
@@ -67,7 +70,7 @@ def parse_zotero_csv(path):
     # for url in sources:
     #     print(url)
 
-def download_xml(url, token):
+def download_xml(url, publisher, token):
     print(f"Downloading article from {url}")
     headers = {
         'User-Agent': 'LappsgridDownloader/1.0 (http://www.lappsgrid.org mailto:suderman@cs.vassar.edu)',
@@ -75,7 +78,11 @@ def download_xml(url, token):
     }
 
     filename = url.split("/")[-1]
-    path = f"xml/{filename}"
+    path = f"{NEGATIVES}/xml/{publisher}/{filename}"
+    dirname = os.path.dirname(path)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         with open(path, "w") as xml_file:
@@ -84,17 +91,21 @@ def download_xml(url, token):
     else:
         print(f"Unable to download article {response.status_code} : {response.reason}")
 
-def download_pdf(url, token):
+def download_pdf(url, publisher, token):
     filename = url.split("/")[-1]
-    path = f"pdf/{filename}"
+    path = f"{NEGATIVES}/pdf/{publisher}/{filename}"
+    dirname = os.path.dirname(path)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+
     headers = {
         'User-Agent': 'LappsgridDownloader/1.0 (http://www.lappsgrid.org mailto:suderman@cs.vassar.edu)',
         'CR-Clickthrough-Client-Token': token
     }
-    print(f"Token is {token}")
-    print(headers)
+
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
+        print(f"Downloaded {url}")
         with open(path, "w") as pdf_file:
             pdf_file.write(response.content)
         print(f"Wrote {path}")
@@ -114,7 +125,7 @@ def get_doi(doi, token):
     response = requests.get(f"https://dx.doi.org/{doi}", headers=headers)
     if response.status_code != 200:
         print(f"Unable to fetch metadata {response.status_code} : {response.reason}")
-    filename = f"doi/{doi}.xml"
+    filename = f"{NEGATIVES}/doi/{doi}.xml"
     dirname = os.path.dirname(filename)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
@@ -125,6 +136,11 @@ def get_doi(doi, token):
 
     print(f"Wrote {filename}")
     doc = BeautifulSoup(xml, 'xml')
+    publisher = 'unknown'
+    nodes = doc.find_all('crm-item', name='publisher-name')
+    if nodes is not None and len(nodes) > 0:
+        publisher = nodes[0].string.lower().replace(' ', '_')
+
     collection = doc.find_all('collection', property='text-mining')
     if collection is None or len(collection) == 0:
         print("No link for TDM found.")
@@ -132,17 +148,17 @@ def get_doi(doi, token):
     collection = collection[0]
     resources = collection.find_all('resource', mime_type="application/pdf")
     if resources is not None and len(resources) > 0:
-        download_pdf(resources[0].string, token)
+        download_pdf(resources[0].string, publisher, token)
         return
 
     resources = collection.find_all('resource', mime_type="application/xml")
     if resources is not None and len(resources) > 0:
-        download_xml(resources[0].string, token)
+        download_xml(resources[0].string, publisher, token)
         return
 
     resources = collection.find_all('resource', mime_type="text/xml")
     if resources is not None and len(resources) > 0:
-        download_xml(resources[0].string, token)
+        download_xml(resources[0].string, publisher, token)
         return
 
     resources = collection.find_all("resource")
@@ -150,10 +166,10 @@ def get_doi(doi, token):
         for resource in resources:
             print(f"Checking {resource.string}")
             if resource.string.endswith(".pdf"):
-                download_pdf(resource.string)
+                download_pdf(resource.string, publisher, token)
                 return
             elif resource.string.endswith(".xml"):
-                download_xml(resource.string)
+                download_xml(resource.string, publisher, token)
                 return
 
     print("No version available for download")
