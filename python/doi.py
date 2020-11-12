@@ -137,7 +137,7 @@ def get_doi(doi, token):
     print(f"Wrote {filename}")
     doc = BeautifulSoup(xml, 'xml')
     publisher = 'unknown'
-    nodes = doc.find_all('crm-item', name='publisher-name')
+    nodes = doc.find_all(name='crm-item', attrs={'name':'publisher-name'})
     if nodes is not None and len(nodes) > 0:
         publisher = nodes[0].string.lower().replace(' ', '_')
 
