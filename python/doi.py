@@ -67,11 +67,16 @@ def parse_zotero_csv(path):
     # for url in sources:
     #     print(url)
 
-def download_xml(url):
+def download_xml(url, token):
     print(f"Downloading article from {url}")
+    headers = {
+        'User-Agent': 'LappsgridDownloader/1.0 (http://www.lappsgrid.org mailto:suderman@cs.vassar.edu)',
+        'CR-Clickthrough-Client-Token': token
+    }
+
     filename = url.split("/")[-1]
     path = f"xml/{filename}"
-    response = requests.get(url)
+    response = requests.get(url, headers)
     if response.status_code == 200:
         with open(path, "w") as xml_file:
             xml_file.write(response.text)
@@ -79,19 +84,32 @@ def download_xml(url):
     else:
         print(f"Unable to download article {response.status_code} : {response.reason}")
 
-def download_pdf(url):
+def download_pdf(url, token):
     filename = url.split("/")[-1]
     path = f"pdf/{filename}"
-    with open(path, "w") as xml_file:
-        response = requests.get(url)
-        if response.status_code == 200:
-            xml_file.write(response.content)
-            print(f"Wrote {path}")
-        else:
-            print(f"Unable to download {url}")
+    headers = {
+        'User-Agent': 'LappsgridDownloader/1.0 (http://www.lappsgrid.org mailto:suderman@cs.vassar.edu)',
+        'CR-Clickthrough-Client-Token': token
+    }
+    print(f"Token is {token}")
+    print(headers)
+    response = requests.get(url, headers)
+    if response.status_code == 200:
+        with open(path, "w") as pdf_file:
+            pdf_file.write(response.content)
+        print(f"Wrote {path}")
+    else:
+        print(f"Unable to download {url}")
+        print(f"Status: {response.status_code}")
+        print(f"Reason: {response.reason}")
+        print(response.headers)
 
-def get_doi(doi):
-    headers = {"Accept":'application/vnd.crossref.unixsd+xml'}
+def get_doi(doi, token):
+    headers = {
+        "Accept":'application/vnd.crossref.unixsd+xml',
+        'User-Agent': 'LappsgridDownloader/1.0 (http://www.lappsgrid.org mailto:suderman@cs.vassar.edu)',
+        'CR-Clickthrough-Client-Token': token
+    }
     print(f"Fetching metadata for {doi}")
     response = requests.get(f"https://dx.doi.org/{doi}", headers=headers)
     if response.status_code != 200:
@@ -107,17 +125,27 @@ def get_doi(doi):
 
     print(f"Wrote {filename}")
     doc = BeautifulSoup(xml, 'xml')
-    resources = doc.find_all('resource', mime_type="application/xml")
+    collection = doc.find_all('collection', property='text-mining')
+    if collection is None or len(collection) == 0:
+        print("No link for TDM found.")
+        return
+    collection = collection[0]
+    resources = collection.find_all('resource', mime_type="application/pdf")
     if resources is not None and len(resources) > 0:
-        download_xml(resources[0].string)
+        download_pdf(resources[0].string, token)
         return
 
-    resources = doc.find_all('resource', mime_type="application/pdf")
+    resources = collection.find_all('resource', mime_type="application/xml")
     if resources is not None and len(resources) > 0:
-        download_pdf(resources[0].string)
+        download_xml(resources[0].string, token)
         return
 
-    resources = doc.find_all("resource")
+    resources = collection.find_all('resource', mime_type="text/xml")
+    if resources is not None and len(resources) > 0:
+        download_xml(resources[0].string, token)
+        return
+
+    resources = collection.find_all("resource")
     if resources is not None and len(resources) > 0:
         for resource in resources:
             print(f"Checking {resource.string}")
@@ -158,10 +186,15 @@ def test_gix064():
 
     print("No version available for download")
 
-def parse_doi_xml():
-    with open("doi.xml", "r") as xml_file:
+def parse_doi_xml(filename):
+    with open(filename, "r") as xml_file:
         doc = BeautifulSoup(xml_file, 'xml')
-    resource = doc.find_all('resource', mime_type="application/xml")
+
+
+    resource = doc.find_all('collection', property='text-mining')
+
+    resource = resource[0].find_all('resource', mime_type='application/pdf')
+    print(len(resource))
     print(resource[0].string)
 
 if __name__ == "__main__":
@@ -171,5 +204,10 @@ if __name__ == "__main__":
     #
     # get_doi(sys.argv[1])
     # test_gix064()
-    # parse_doi_xml()
-    parse_zotero_csv("/Users/suderman/Downloads/Zotero_lib_20200921.csv")
+    # parse_doi_xml('/Users/suderman/Projects/identify-galaxy/doi/10.1002/rse2.54.xml')
+    token = os.environ.get('CROSSREF_API_TOKEN')
+    if token is None:
+        print("The CROSSREF_API_TOKEN environment variable has not been set")
+    else:
+        get_doi('10.1002/rse2.54', token)
+    # parse_zotero_csv("/Users/suderman/Downloads/Zotero_lib_20200921.csv")

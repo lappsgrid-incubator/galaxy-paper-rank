@@ -23,13 +23,19 @@ class HTTP {
         return this
     }
 
+    HTTP headers(Map<String,String> headers) {
+        headers.each { name,value ->
+            actions << { conn -> conn.setRequestProperty(name, value) }
+        }
+    }
+
     HTTP timeout(long msec) {
         actions << { conn -> conn.setConnectTimeout(msec) }
         return this
     }
 
     void get(Closure handler) {
-        actions << { conn -> conn..setRequestMethod("GET") }
+        actions << { conn -> conn.setRequestMethod("GET") }
         actions.each { act -> act(connection) }
         Response response = new Response()
         while (connection.responseCode == 301 || connection.responseCode == 302) {
@@ -44,7 +50,9 @@ class HTTP {
         response.code = connection.responseCode
         response.message = connection.responseMessage
         response.headers = connection.headerFields
-        response.body = connection.inputStream.bytes
+        if (response.code == 200) {
+            response.body = connection.inputStream.bytes
+        }
         handler(response)
     }
 
