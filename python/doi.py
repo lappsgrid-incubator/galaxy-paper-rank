@@ -192,8 +192,8 @@ def get_all_doi(csv_path, token):
         keys = next(reader)
         for row in reader:
             doi = row[2]
-            # get_doi(doi, token)
-            print(f"DOI {doi}")
+            get_doi(doi, token)
+            # print(f"DOI {doi}")
 
     print(f"Downloaded {len(downloads)} files.")
     print(f"Encountered {len(errors)} errors.")
