@@ -226,7 +226,9 @@ if __name__ == "__main__":
     if token is None:
         print("The CROSSREF_API_TOKEN environment variable has not been set")
     elif sys.argv[1].endswith(".csv"):
-        get_all_doi(sys.argv[1], token)
+        print("Found csv file")
+        # get_all_doi(sys.argv[1], token)
     else:
-        get_doi(sys.argv[1], token)
+        print("Found single DOI")
+        # get_doi(sys.argv[1], token)
     # parse_zotero_csv("/Users/suderman/Downloads/Zotero_lib_20200921.csv")
