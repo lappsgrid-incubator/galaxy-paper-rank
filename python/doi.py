@@ -205,8 +205,9 @@ def get_all_doi(csv_path, token):
         keys = next(reader)
         line = next(reader)
         while line[2] != "10.1002/9781119200055.ch9":
+            print(f"Skipping {line[2]}")
             line = next(reader)
-            
+
         for row in reader:
             doi = row[2]
             get_doi(doi, token)
