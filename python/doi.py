@@ -114,7 +114,7 @@ def download_pdf(url, doi, publisher, token):
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         print(f"Downloaded {url}")
-        with open(path, "w") as pdf_file:
+        with open(path, "wb") as pdf_file:
             pdf_file.write(response.content)
         print(f"Wrote {path}")
         downloads.append(f"{doi},{url},{publisher}")
@@ -183,6 +183,7 @@ def get_doi(doi, token):
                 download_xml(resource.string, doi, publisher, token)
                 return
 
+    errors.append(f"{doi},unknown,unknown,No file available for download.")
     print("No version available for download")
 
 
