@@ -9,6 +9,9 @@ test_url = "https://cdn.elifesciences.org/articles/25157/elife-25157-v2.xml"
 BASE_DIRECTORY = '/data/corpora/curation'
 NEGATIVES = f"{BASE_DIRECTORY}/negative"
 
+errors = list()
+downloads = list()
+
 def parse_zotero_csv(path):
     dxdoi = "http://dx.doi.org"
     urls_only = list()
@@ -70,7 +73,7 @@ def parse_zotero_csv(path):
     # for url in sources:
     #     print(url)
 
-def download_xml(url, publisher, token):
+def download_xml(url, doi, publisher, token):
     print(f"Downloading article from {url}")
     headers = {
         'User-Agent': 'LappsgridDownloader/1.0 (http://www.lappsgrid.org mailto:suderman@cs.vassar.edu)',
@@ -80,7 +83,7 @@ def download_xml(url, publisher, token):
     filename = url.split("?")[0].split("/")[-1]
     if not filename.endswith(".xml"):
         filename = f"{filename}.xml"
-        
+
     path = f"{NEGATIVES}/xml/{publisher}/{filename}"
     dirname = os.path.dirname(path)
     if not os.path.exists(dirname):
@@ -91,10 +94,12 @@ def download_xml(url, publisher, token):
         with open(path, "w") as xml_file:
             xml_file.write(response.text)
         print(f"Wrote {path}")
+        downloads.append(f"{doi},{url},{publisher}")
     else:
         print(f"Unable to download article {response.status_code} : {response.reason}")
+        errors.append(f"{doi},{url},{response.status_code},{response.reason}")
 
-def download_pdf(url, publisher, token):
+def download_pdf(url, doi, publisher, token):
     filename = url.split("/")[-1]
     path = f"{NEGATIVES}/pdf/{publisher}/{filename}"
     dirname = os.path.dirname(path)
@@ -112,11 +117,14 @@ def download_pdf(url, publisher, token):
         with open(path, "w") as pdf_file:
             pdf_file.write(response.content)
         print(f"Wrote {path}")
+        downloads.append(f"{doi},{url},{publisher}")
     else:
         print(f"Unable to download {url}")
         print(f"Status: {response.status_code}")
         print(f"Reason: {response.reason}")
         print(response.headers)
+        errors.append(f"{doi},{url},{response.status_code},{response.reason}")
+
 
 def get_doi(doi, token):
     headers = {
@@ -151,17 +159,17 @@ def get_doi(doi, token):
     collection = collection[0]
     resources = collection.find_all('resource', mime_type="application/pdf")
     if resources is not None and len(resources) > 0:
-        download_pdf(resources[0].string, publisher, token)
+        download_pdf(resources[0].string, doi, publisher, token)
         return
 
     resources = collection.find_all('resource', mime_type="application/xml")
     if resources is not None and len(resources) > 0:
-        download_xml(resources[0].string, publisher, token)
+        download_xml(resources[0].string, doi, publisher, token)
         return
 
     resources = collection.find_all('resource', mime_type="text/xml")
     if resources is not None and len(resources) > 0:
-        download_xml(resources[0].string, publisher, token)
+        download_xml(resources[0].string, doi, publisher, token)
         return
 
     resources = collection.find_all("resource")
@@ -169,41 +177,31 @@ def get_doi(doi, token):
         for resource in resources:
             print(f"Checking {resource.string}")
             if resource.string.endswith(".pdf"):
-                download_pdf(resource.string, publisher, token)
+                download_pdf(resource.string, doi, publisher, token)
                 return
             elif resource.string.endswith(".xml"):
-                download_xml(resource.string, publisher, token)
+                download_xml(resource.string, doi, publisher, token)
                 return
 
     print("No version available for download")
 
 
-def test_gix064():
-    with open("doi/10.1093/gigascience/gix064.xml", "r") as xml_file:
-        doc = BeautifulSoup(xml_file, 'xml')
-    resources = doc.find_all('resource', mime_type="application/xml")
-    if resources is not None and len(resources) > 0:
-        print(f"Found {resources[0].string}")
-        return
-
-    resources = doc.find_all('resource', mime_type="application/pdf")
-    if resources is not None and len(resources) > 0:
-        print(f"Found {resources[0].string}")
-        return
-
-    resources = doc.find_all("resource")
-    if resources is not None and len(resources) > 0:
-        print("Found a resource")
-        for resource in resources:
-            print(f"Checking {resource.string}")
-            if resource.string.endswith(".pdf"):
-                print(f"Found {resource.string}")
-                return
-            elif resource.string.endswith(".xml"):
-                print(f"Found {resource.string}")
-                return
-
-    print("No version available for download")
+def get_all_doi(csv_path, token):
+    with open(csv_path, "r") as csv_file:
+        reader = csv.reader(csv_file)
+        keys = next(reader)
+        for row in reader:
+            doi = row[1]
+            get_doi(doi, token)
+    print(f"Downloaded {len(downloads)} files.")
+    print(f"Encountered {len(errors)} errors.")
+    with open(f"{BASE_DIRECTORY}/negative-downloaded.csv", "w") as csv_file:
+        csv_file.write("doi,url,publisher\n")
+        csv_file.writelines(downloads)
+    with open(f"{BASE_DIRECTORY}/negative-errors.csv", "w") as csv_file:
+        csv_file.write("doi,url,status,reason\n")
+        csv_file.writelines(errors)
+    print("Done")
 
 def parse_doi_xml(filename):
     with open(filename, "r") as xml_file:
@@ -218,7 +216,7 @@ def parse_doi_xml(filename):
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        print("USAGE: python doi.py <DOI>")
+        print("USAGE: python doi.py [DOI|CSV]")
         sys.exit(1)
     #
     # get_doi(sys.argv[1])
@@ -227,6 +225,8 @@ if __name__ == "__main__":
     token = os.environ.get('CROSSREF_API_TOKEN')
     if token is None:
         print("The CROSSREF_API_TOKEN environment variable has not been set")
+    elif sys.argv[1].endswith(".csv"):
+        get_all_doi(sys.argv[1], token)
     else:
         get_doi(sys.argv[1], token)
     # parse_zotero_csv("/Users/suderman/Downloads/Zotero_lib_20200921.csv")
