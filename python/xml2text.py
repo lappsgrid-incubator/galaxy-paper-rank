@@ -52,25 +52,23 @@ def ok(directory, type):
     return True
 
 if __name__ == "__main__":
-    # if len(sys.argv) != 3:
-    #     print("USAGE: python xml2text.py <INDIR> <OUTDIR>")
-    #     print("\nXML files will be read from <INDIR> and the extracted text written to <OUTDIR>")
-    #     print("Both directories must exist and the directory structure in <INDIR> will")
-    #     print("be created inside <OUTDIR>.")
-    #     sys.exit(1)
-    #
-    # indir = sys.argv[1]
-    # if not ok(indir, "input"):
-    #     sys.exit(1)
-    # outdir = sys.argv[2]
-    # if not ok(outdir, "output"):
-    #     sys.exit(1)
-    #
-    # process(indir, outdir)
-    process("../files/xml", "../files/txt")
+    if len(sys.argv) != 3:
+        print("USAGE: python xml2text.py <INDIR> <OUTDIR>")
+        print("\nXML files will be read from <INDIR> and the extracted text written to <OUTDIR>")
+        print("Both directories must exist and the directory structure in <INDIR> will")
+        print("be created inside <OUTDIR>.")
+        sys.exit(1)
+
+    indir = sys.argv[1]
+    if not ok(indir, "input"):
+        sys.exit(1)
+    outdir = sys.argv[2]
+    if not ok(outdir, "output"):
+        sys.exit(1)
+
+    process(indir, outdir)
     print(f"Wrote {passed} files.")
     print(f"Encountered {failed} problems.")
     print(f"Skipped {len(skipped)} files.")
     for f in skipped:
         print(f)
-        
