@@ -93,17 +93,17 @@ def download_xml(url, doi, publisher, token):
         response = requests.get(url, headers=headers)
     except:
         print(f"Unable to download {url} : {sys.exc_info()[0]}")
-        errors.append(f"{doi},{url},500,{sys.exc_info()[0]}")
+        errors.append(f"{doi},{url},500,{sys.exc_info()[0]}\n")
         return
 
     if response.status_code == 200:
         with open(path, "w") as xml_file:
             xml_file.write(response.text)
         print(f"Wrote {path}")
-        downloads.append(f"{doi},{url},{publisher}")
+        downloads.append(f"{doi},{url},{publisher}\n")
     else:
         print(f"Unable to download article {response.status_code} : {response.reason}")
-        errors.append(f"{doi},{url},{response.status_code},{response.reason}")
+        errors.append(f"{doi},{url},{response.status_code},{response.reason}\n")
 
 def download_pdf(url, doi, publisher, token):
     filename = url.split("/")[-1]
@@ -121,7 +121,7 @@ def download_pdf(url, doi, publisher, token):
         response = requests.get(url, headers=headers)
     except:
         print(f"Unable to download {url} : {sys.exc_info()[0]}")
-        errors.append(f"{doi},{url},500,{sys.exc_info()[0]}")
+        errors.append(f"{doi},{url},500,{sys.exc_info()[0]}\n")
         return
 
     if response.status_code == 200:
@@ -129,13 +129,13 @@ def download_pdf(url, doi, publisher, token):
         with open(path, "wb") as pdf_file:
             pdf_file.write(response.content)
         print(f"Wrote {path}")
-        downloads.append(f"{doi},{url},{publisher}")
+        downloads.append(f"{doi},{url},{publisher}\n")
     else:
         print(f"Unable to download {url}")
         print(f"Status: {response.status_code}")
         print(f"Reason: {response.reason}")
         print(response.headers)
-        errors.append(f"{doi},{url},{response.status_code},{response.reason}")
+        errors.append(f"{doi},{url},{response.status_code},{response.reason}\n")
 
 
 def get_doi(doi, token):
