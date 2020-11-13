@@ -43,7 +43,7 @@ def ok(directory, type):
     if not os.path.exists(indir):
         print(f"The {type} directory {indir} does not exist")
         return False
-    if os.path.isdir(sys.argv[1]):
+    if not os.path.isdir(sys.argv[1]):
         print(f"{directory} is not a directory")
         return False
     return True
