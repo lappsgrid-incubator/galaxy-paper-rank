@@ -38,7 +38,7 @@ def process(indir, outdir):
             child = os.path.join(outdir, os.path.basename(f))
             if not os.path.exists(child):
                 os.makedirs(child, 0o774)
-            process(f, child)
+            process(full_path, child)
         else:
             skipped.append(full_path)
 
