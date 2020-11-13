@@ -40,10 +40,10 @@ def process(indir, outdir):
             process(f, child)
 
 def ok(directory, type):
-    if not os.path.exists(indir):
+    if not os.path.exists(directory):
         print(f"The {type} directory {indir} does not exist")
         return False
-    if not os.path.isdir(sys.argv[1]):
+    if not os.path.isdir(directory):
         print(f"{directory} is not a directory")
         return False
     return True
